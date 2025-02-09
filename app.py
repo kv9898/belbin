@@ -35,6 +35,20 @@ def normalise_answers() -> None:
         for choice in answers[question]:
             answers[question][choice] = answers[question][choice] / total * 10
 
+# Role score initialisation
+file_path = "www/roles.json"
+with open(file_path, encoding="utf-8") as file:
+    role_scores_table: dict[str] = json.load(file)
+role_scores: dict[float] = {role: 0 for role in role_scores_table.keys()}
+
+def role_score_calculate() -> None:
+    for role in role_scores:
+        score = 0
+        for q in range(1, len(answers) + 1):
+            choice = role_scores_table[role][str(q)].lower()
+            score += answers[str(q)][choice]
+        role_scores[role] = score
+
 # Check for last choice of the last question
 def last_choice(question: int, choice: str) -> bool:
     try:
@@ -182,6 +196,8 @@ def server(input, output, session):
             collect_answers()
             normalise_answers()
             print(json.dumps(answers, indent=2))
+            role_score_calculate()
+            print(json.dumps(role_scores, indent=2))
         return button_processor
     
     for question in questionnaire:
