@@ -121,8 +121,6 @@ for question in questionnaire:
         raise ValueError("Invalid question found")
     question_panels.append(get_question_panel(int(match)))
 
-print(len(question_panels))
-
 app_ui = ui.page_fluid(
     ui.head_content(ui.include_js("app_py.js")),
     ui.navset_tab(
