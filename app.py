@@ -12,7 +12,8 @@ file_path = "www/questionnaire.json"
 with open(file_path, encoding="utf-8") as file:
     questionnaire: dict[str] = json.load(file)
 
-# Sanity check
+# Sanity check and answer dictionary creation
+answers: dict[dict[str]] = {}
 for index, question in enumerate(questionnaire):
     if question != f"Q{index + 1}":
         raise ValueError("Question number mismatch")
@@ -23,6 +24,14 @@ for index, question in enumerate(questionnaire):
         UPPERCASES = list(ascii_letters[26:])
         if choices != UPPERCASES[:len(choices)]:
             raise ValueError("Choices key mismatch")
+    answers[f"{index + 1}"] = {choice.lower(): 0 for choice in choices}
+
+# normalise answers to sum to 100
+def normalise_answers() -> None:
+    for question in answers:
+        total = sum(answers[question].values())
+        for choice in answers[question]:
+            answers[question][choice] = answers[question][choice] / total * 10
 
 # Check for last choice of the last question
 def last_choice(question: int, choice: str) -> bool:
@@ -147,10 +156,12 @@ def server(input, output, session):
         ui.update_navs(id="main_tab", selected=str(next_q))
         ui.update_navs(id=f"q{next_q}", selected=next_c)
 
+    # Button processors
     @reactive.effect
     @reactive.event(getattr(input, "start_button"))
     async def start_button():
         next_tab()
+        collect_answers()
 
     def create_button_processor(question: int, choice: str) -> Callable:
         choice = choice.lower()
@@ -159,6 +170,17 @@ def server(input, output, session):
         @reactive.event(input_event)
         def button_processor():
             next_tab(question, choice)
+            collect_answers()
+        return button_processor
+    
+    def submit_button_processor(question: int, choice: str) -> Callable:
+        choice = choice.lower()
+        input_event = getattr(input, f"next{question}{choice}")
+        @reactive.effect
+        @reactive.event(input_event)
+        def button_processor():
+            collect_answers()
+            print(json.dumps(answers, indent=2))
         return button_processor
     
     for question in questionnaire:
@@ -168,8 +190,18 @@ def server(input, output, session):
             if choice == "q":
                 continue
             if last_choice(q, c):
-                continue
+                globals()[f"button{q}{c}"] = submit_button_processor(q, c)
             globals()[f"button{q}{c}"] = create_button_processor(q, c)
-            print(f"button{q}{c}")
+    
+    # collect slider answers
+    def collect_answers():
+        for question in questionnaire:
+            for choice in questionnaire[question]:
+                q = int(re.match(r'^Q(\d+)$', question).group(1))
+                c = choice.lower()
+                if choice == "q":
+                    continue
+                slider_input = getattr(input, f"q{q}{c}")
+                answers[f"{q}"][c] = slider_input()
 
 app = App(app_ui, server, static_assets=Path(__file__).parent / "www", debug=True)
