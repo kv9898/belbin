@@ -30,6 +30,8 @@ for index, question in enumerate(questionnaire):
 def normalise_answers() -> None:
     for question in answers:
         total = sum(answers[question].values())
+        if total == 0:
+            continue
         for choice in answers[question]:
             answers[question][choice] = answers[question][choice] / total * 10
 
@@ -180,6 +182,7 @@ def server(input, output, session):
         @reactive.event(input_event)
         def button_processor():
             collect_answers()
+            normalise_answers()
             print(json.dumps(answers, indent=2))
         return button_processor
     
