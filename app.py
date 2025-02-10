@@ -254,6 +254,8 @@ results_panel = ui.nav_panel(
     ui.br(),
     ui.br(),
     ui.output_data_frame("results"),
+    ui.br(),
+    ui.input_action_button("back_to_questions", "返回问卷"),
 )
 
 # compile ui
@@ -304,10 +306,15 @@ def server(input, output, session):
 
     # Button processors
     @reactive.effect
-    @reactive.event(getattr(input, "start_button"))
+    @reactive.event(input.start_button)
     async def start_button():
         next_tab()
         collect_answers()
+
+    @reactive.effect
+    @reactive.event(input.back_to_questions)
+    async def back_to_questions_button():
+        ui.update_navs(id="results_display", selected="main_tab")
 
     def create_button_processor(question: int, choice: str) -> Callable:
         choice = choice.lower()
@@ -331,7 +338,6 @@ def server(input, output, session):
             normalise_answers()
             role_score_calculate()
             calculate_final_score()
-            print(json.dumps(role_scores, indent=2))
             produce_results()
             results_df_reac.set(results_df)
             ui.update_navs(id="results_display", selected="结果")
