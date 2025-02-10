@@ -203,13 +203,15 @@ def get_choice_panel(question: int, choice: str) -> NavPanel:
         else:
             raise ValueError("Choice out of bound")
     # determine button text
-    button_text = "下一题" if not last_choice(question, choice) else "完成问卷"
+    prev_text = "上一题" if not (question == 1 and choice == "a") else "返回欢迎页"
+    next_text = "下一题" if not last_choice(question, choice) else "完成问卷"
     # find panel
     choice_panel = ui.nav_panel(
         choice.upper(),
         choice_txt,
         ui.input_slider(f"q{question}{choice}", "", 0, 10, 0),
-        ui.input_action_button(f"next{question}{choice}", button_text),
+        ui.input_action_button(f"prev{question}{choice}", prev_text),
+        ui.input_action_button(f"next{question}{choice}", next_text),
     )
     return choice_panel
 
@@ -280,6 +282,18 @@ def server(input, output, session):
 
     results_df_reac =  reactive.value(results_df) # for reactive results handling
 
+    def prev_tab(question: int, choice: str):
+        choice = choice.lower()
+        if question == 1 and choice == "a":
+            ui.update_navs(id="main_tab", selected="欢迎")
+            return
+        if choice!="a":
+            ui.update_navs(id=f"q{question}", selected=chr(ord(choice.upper()) - 1))
+            return
+        else:
+            ui.update_navs(id="main_tab", selected=str(question-1)) # go to previous question
+            last_choice = list(questionnaire[f"Q{question-1}"].keys())[-1].upper() # get the last choice of previous question
+            ui.update_navs(id=f"q{question-1}", selected=last_choice)
     def next_tab(question: Optional[int] = None, choice: Optional[str] = None):
         next_q: int = 1
         next_c: str = "A"
@@ -316,17 +330,29 @@ def server(input, output, session):
     async def back_to_questions_button():
         ui.update_navs(id="results_display", selected="main_tab")
 
-    def create_button_processor(question: int, choice: str) -> Callable:
+    def create_prev_processor(question: int, choice: str) -> Callable:
+        choice = choice.lower()
+        input_event = getattr(input, f"prev{question}{choice}")
+
+        @reactive.effect
+        @reactive.event(input_event)
+        def prev_processor():
+            prev_tab(question, choice)
+            collect_answers()
+
+        return prev_processor
+
+    def create_next_processor(question: int, choice: str) -> Callable:
         choice = choice.lower()
         input_event = getattr(input, f"next{question}{choice}")
 
         @reactive.effect
         @reactive.event(input_event)
-        def button_processor():
+        def next_processor():
             next_tab(question, choice)
             collect_answers()
 
-        return button_processor
+        return next_processor
 
     def submit_button_processor(question: int, choice: str) -> Callable:
         choice = choice.lower()
@@ -351,8 +377,11 @@ def server(input, output, session):
             if choice == "q":
                 continue
             if last_choice(q, c):
-                globals()[f"button{q}{c}"] = submit_button_processor(q, c)
-            globals()[f"button{q}{c}"] = create_button_processor(q, c)
+                globals()[f"prev{q}{c}"] = create_prev_processor(q, c)
+                globals()[f"next{q}{c}"] = submit_button_processor(q, c)
+                continue
+            globals()[f"prev{q}{c}"] = create_prev_processor(q, c)
+            globals()[f"next{q}{c}"] = create_next_processor(q, c)
 
     # collect slider answers
     def collect_answers():
