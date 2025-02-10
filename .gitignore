@@ -11,3 +11,5 @@ wheels/
 
 # Secrets
 deploy
+answers.py
+www/answers.json
