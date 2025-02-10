@@ -402,4 +402,4 @@ def server(input, output, session):
         )
 
 
-app = App(app_ui, server, static_assets=Path(__file__).parent / "www", debug=True)
+app = App(app_ui, server, static_assets=Path(__file__).parent / "www")
