@@ -11,7 +11,6 @@ with open(file_path, encoding="utf-8") as file:
 # Sanity check and answer dictionary creation
 answers: dict[dict[str]] = {}
 for index, question in enumerate(questionnaire):
-    print("test")
     if question != f"Q{index + 1}":
         raise ValueError("Question number mismatch")
     choices = list(questionnaire[question].keys())
