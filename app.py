@@ -6,59 +6,7 @@ from collections.abc import Callable
 import json, re
 import polars as pl
 
-from engine import questionnaire, answers, normalise_answers, role_scores, role_score_calculate
-
-# Final score calculation
-final_score_table: pl.DataFrame = pl.read_csv("www/final.csv", separator=",")
-
-
-def final_score_calculator(role: str, raw_score: float) -> int:
-    if role not in final_score_table.columns:
-        raise ValueError(f"Role {role} not found in final score table")
-
-    role_data = final_score_table[["raw", role]]
-
-    # return if raw score is in the table
-    if raw_score in role_data["raw"]:
-        processed_score: pl.Series = role_data.filter(
-            pl.col("raw") == raw_score
-        ).get_column(role)
-        if len(processed_score) != 1:
-            raise ValueError(
-                f"Multiple final scores found for raw score {raw_score} and role {role}"
-            )
-        processed_score: int = processed_score[0]
-        if not isinstance(processed_score, int) or processed_score < 0:
-            raise ValueError(
-                f"Invalid final score {processed_score} found for raw score {raw_score} and role {role}"
-            )
-        return processed_score
-
-    # deal with out of range raw score
-    if raw_score >= role_data[0, 0]:
-        return role_data[0, 1]
-    elif raw_score <= role_data[-1, 0]:
-        return role_data[-1, 1]
-
-    # find interval for decimal raw score
-    for i in range(role_data.height - 1):
-        x_high, y_high = role_data[i].rows()[0]
-        x_low, y_low = role_data[i + 1].rows()[0]
-        if x_high >= raw_score >= x_low:
-            break
-
-    # 计算插值
-    slope = (y_low - y_high) / (x_low - x_high)
-    processed_score = y_high + slope * (raw_score - x_high)
-    return int(processed_score)
-
-
-def calculate_final_score() -> None:
-    for role in role_scores:
-        raw_score = role_scores[role]
-        final_score = final_score_calculator(role, raw_score)
-        role_scores[role] = final_score
-
+from engine import questionnaire, answers, normalise_answers, role_scores, role_score_calculate, calculate_final_score
 
 # Result table production
 file_path = "www/role_names.json"
