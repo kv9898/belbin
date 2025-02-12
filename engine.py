@@ -154,3 +154,16 @@ def get_results() -> pl.DataFrame:
 
 def get_styles() -> list:
     return styles
+
+# Check for last choice of the last question
+def last_choice(question: int, choice: str) -> bool:
+    try:
+        questions = list(questionnaire.keys())
+        if f"Q{question}" != questions[-1]:
+            return False
+        choices = list(questionnaire[f"Q{question}"].keys())
+        if choice.upper() != choices[-1]:
+            return False
+        return True
+    except (ValueError, IndexError):
+        return False

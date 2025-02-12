@@ -5,21 +5,7 @@ from typing import Optional
 from collections.abc import Callable
 import re
 
-from engine import questionnaire, answers, normalise_answers, role_score_calculate, calculate_final_score, get_results, get_styles, produce_results
-
-# Check for last choice of the last question
-def last_choice(question: int, choice: str) -> bool:
-    try:
-        questions = list(questionnaire.keys())
-        if f"Q{question}" != questions[-1]:
-            return False
-        choices = list(questionnaire[f"Q{question}"].keys())
-        if choice.upper() != choices[-1]:
-            return False
-        return True
-    except (ValueError, IndexError):
-        return False
-
+from engine import questionnaire, answers, normalise_answers, role_score_calculate, calculate_final_score, get_results, get_styles, produce_results, last_choice
 
 # Produce welcome panel
 welcome_panel = ui.nav_panel(
