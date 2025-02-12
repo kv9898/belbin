@@ -3,65 +3,9 @@ from shiny.ui._navs import NavPanel
 from pathlib import Path
 from typing import Optional
 from collections.abc import Callable
-import json, re
-import polars as pl
+import re
 
-from engine import questionnaire, answers, normalise_answers, role_scores, role_score_calculate, calculate_final_score
-
-# Result table production
-file_path = "www/role_names.json"
-with open(file_path, encoding="utf-8") as file:
-    role_names: dict[str] = json.load(file)
-if role_names.keys() != role_scores.keys():
-    raise ValueError("Role names and scores do not match")
-
-results_df: pl.DataFrame = pl.DataFrame()
-styles = []  # for highlighting results
-
-
-def produce_results() -> None:
-    global results_df
-    global styles
-    results_df = pl.DataFrame(
-        {
-            "角色": [f"{role_names[role]} ({role})" for role in role_scores.keys()],
-            "分数": [role_scores[role] for role in role_scores.keys()],
-        }
-    )
-
-    def role_level(score: int) -> str:
-        if score >= 70:
-            return "自然角色"
-        elif score >= 30:
-            return "次要角色"
-        else:
-            return "避免角色"
-
-    results_df = results_df.with_columns(
-        pl.col("分数").map_elements(role_level, return_dtype=str).alias("角色等级")
-    )
-
-    # calculate styles
-    styles = []
-    natural_roles = [i for i, x in enumerate(results_df["角色等级"] == "自然角色") if x]
-    if len(natural_roles) > 0:
-        styles.append(
-            {
-                "rows": natural_roles,
-                "style": {"font-weight": "bold", "background-color": "#bfffaf"},
-            }
-        )
-    avoided_roles = [i for i, x in enumerate(results_df["角色等级"] == "避免角色") if x]
-    if len(avoided_roles) > 0:
-        styles.append(
-            {
-                "rows": avoided_roles,
-                "style": {"background-color": "#ffbaaf"},
-            }
-        )
-
-produce_results()
-
+from engine import questionnaire, answers, normalise_answers, role_score_calculate, calculate_final_score, get_results, get_styles, produce_results
 
 # Check for last choice of the last question
 def last_choice(question: int, choice: str) -> bool:
@@ -181,7 +125,7 @@ app_ui = ui.page_fluid(
 
 def server(input, output, session):
 
-    results_df_reac =  reactive.value(results_df) # for reactive results handling
+    results_df_reac =  reactive.value(get_results()) # for reactive results handling
 
     def prev_tab(question: int, choice: str):
         choice = choice.lower()
@@ -266,7 +210,7 @@ def server(input, output, session):
             role_score_calculate()
             calculate_final_score()
             produce_results()
-            results_df_reac.set(results_df)
+            results_df_reac.set(get_results())
             ui.update_navs(id="results_display", selected="结果")
 
         return button_processor
@@ -299,7 +243,7 @@ def server(input, output, session):
     @render.data_frame
     def results():
         return render.DataGrid(
-            results_df_reac(), styles=styles
+            results_df_reac(), styles=get_styles()
         )
 
 

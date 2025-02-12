@@ -95,3 +95,62 @@ def calculate_final_score() -> None:
         raw_score = role_scores[role]
         final_score = final_score_calculator(role, raw_score)
         role_scores[role] = final_score
+
+# Result table production
+file_path = "www/role_names.json"
+with open(file_path, encoding="utf-8") as file:
+    role_names: dict[str] = json.load(file)
+if role_names.keys() != role_scores.keys():
+    raise ValueError("Role names and scores do not match")
+
+results_df: pl.DataFrame = pl.DataFrame()
+styles = []  # for highlighting results
+
+def produce_results() -> None:
+    global results_df
+    global styles
+    results_df = pl.DataFrame(
+        {
+            "角色": [f"{role_names[role]} ({role})" for role in role_scores.keys()],
+            "分数": [role_scores[role] for role in role_scores.keys()],
+        }
+    )
+
+    def role_level(score: int) -> str:
+        if score >= 70:
+            return "自然角色"
+        elif score >= 30:
+            return "次要角色"
+        else:
+            return "避免角色"
+
+    results_df = results_df.with_columns(
+        pl.col("分数").map_elements(role_level, return_dtype=str).alias("角色等级")
+    )
+
+    # calculate styles
+    styles = []
+    natural_roles = [i for i, x in enumerate(results_df["角色等级"] == "自然角色") if x]
+    if len(natural_roles) > 0:
+        styles.append(
+            {
+                "rows": natural_roles,
+                "style": {"font-weight": "bold", "background-color": "#bfffaf"},
+            }
+        )
+    avoided_roles = [i for i, x in enumerate(results_df["角色等级"] == "避免角色") if x]
+    if len(avoided_roles) > 0:
+        styles.append(
+            {
+                "rows": avoided_roles,
+                "style": {"background-color": "#ffbaaf"},
+            }
+        )
+
+produce_results()
+
+def get_results() -> pl.DataFrame:
+    return results_df
+
+def get_styles() -> list:
+    return styles
