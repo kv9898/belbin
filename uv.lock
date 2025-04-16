@@ -1,8 +1,9 @@
 version = 1
+revision = 1
 requires-python = ">=3.12"
 resolution-markers = [
-    "platform_system != 'Emscripten'",
-    "platform_system == 'Emscripten'",
+    "sys_platform != 'emscripten'",
+    "sys_platform == 'emscripten'",
 ]
 
 [[package]]
@@ -12,7 +13,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "idna" },
     { name = "sniffio" },
-    { name = "typing-extensions", marker = "python_full_version < '3.13' and python_full_version >= '3.12'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a3/73/199a98fc2dae33535d6b8e8e6ec01f8c1d76c9adb096c6b7d64823038cde/anyio-4.8.0.tar.gz", hash = "sha256:1d9fe889df5212298c0c0723fa20479d1b94883a2df44bd3897aa91083316f7a", size = 181126 }
 wheels = [
@@ -57,7 +58,7 @@ wheels = [
 
 [[package]]
 name = "belbin"
-version = "0.1.0"
+version = "0.1.1"
 source = { virtual = "." }
 dependencies = [
     { name = "ipykernel" },
@@ -112,7 +113,7 @@ name = "click"
 version = "8.1.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "platform_system == 'Windows'" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/b9/2e/0090cbf739cee7d23781ad4b89a9894a41538e4fcf4c31dcdd705b78eb8b/click-8.1.8.tar.gz", hash = "sha256:ed53c9d8990d83c2a27deae68e4ee337473f6330c040a31d4225c9574d16096a", size = 226593 }
 wheels = [
@@ -211,7 +212,7 @@ name = "ipykernel"
 version = "6.29.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "appnope", marker = "platform_system == 'Darwin'" },
+    { name = "appnope", marker = "sys_platform == 'darwin'" },
     { name = "comm" },
     { name = "debugpy" },
     { name = "ipython" },
@@ -424,7 +425,7 @@ name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ptyprocess" },
+    { name = "ptyprocess", marker = "sys_platform != 'emscripten'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450 }
 wheels = [
@@ -618,7 +619,7 @@ name = "questionary"
 version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "prompt-toolkit", marker = "platform_system != 'Emscripten'" },
+    { name = "prompt-toolkit", marker = "sys_platform != 'emscripten'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a8/b8/d16eb579277f3de9e56e5ad25280fab52fc5774117fb70362e8c2e016559/questionary-2.1.0.tar.gz", hash = "sha256:6302cdd645b19667d8f6e6634774e9538bfcd1aad9be287e743d96cacaf95587", size = 26775 }
 wheels = [
@@ -665,7 +666,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "appdirs" },
     { name = "asgiref" },
-    { name = "click", marker = "platform_system != 'Emscripten'" },
+    { name = "click", marker = "sys_platform != 'emscripten'" },
     { name = "htmltools" },
     { name = "linkify-it-py" },
     { name = "markdown-it-py" },
@@ -673,14 +674,14 @@ dependencies = [
     { name = "narwhals" },
     { name = "orjson" },
     { name = "packaging" },
-    { name = "prompt-toolkit", marker = "platform_system != 'Emscripten'" },
+    { name = "prompt-toolkit", marker = "sys_platform != 'emscripten'" },
     { name = "python-multipart" },
-    { name = "questionary", marker = "platform_system != 'Emscripten'" },
-    { name = "setuptools", marker = "python_full_version >= '3.12'" },
+    { name = "questionary", marker = "sys_platform != 'emscripten'" },
+    { name = "setuptools" },
     { name = "starlette" },
     { name = "typing-extensions" },
-    { name = "uvicorn", marker = "platform_system != 'Emscripten'" },
-    { name = "watchfiles", marker = "platform_system != 'Emscripten'" },
+    { name = "uvicorn", marker = "sys_platform != 'emscripten'" },
+    { name = "watchfiles", marker = "sys_platform != 'emscripten'" },
     { name = "websockets" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0a/1e/7fb6b23a09f85b2d7fa81ae9b0992dd817e8fcaf7218c86a4641ab6d896d/shiny-1.2.1.tar.gz", hash = "sha256:69a4db338710d87fad0ae50e04b2d70f6b7183edb846db4fa90cd7456091feee", size = 5205474 }
@@ -782,8 +783,8 @@ name = "uvicorn"
 version = "0.34.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "click", marker = "platform_system != 'Emscripten'" },
-    { name = "h11", marker = "platform_system != 'Emscripten'" },
+    { name = "click", marker = "sys_platform != 'emscripten'" },
+    { name = "h11", marker = "sys_platform != 'emscripten'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/4b/4d/938bd85e5bf2edeec766267a5015ad969730bb91e31b44021dfe8b22df6c/uvicorn-0.34.0.tar.gz", hash = "sha256:404051050cd7e905de2c9a7e61790943440b3416f49cb409f965d9dcd0fa73e9", size = 76568 }
 wheels = [
@@ -795,7 +796,7 @@ name = "watchfiles"
 version = "1.0.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "anyio", marker = "platform_system != 'Emscripten'" },
+    { name = "anyio", marker = "sys_platform != 'emscripten'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/f5/26/c705fc77d0a9ecdb9b66f1e2976d95b81df3cae518967431e7dbf9b5e219/watchfiles-1.0.4.tar.gz", hash = "sha256:6ba473efd11062d73e4f00c2b730255f9c1bdd73cd5f9fe5b5da8dbd4a717205", size = 94625 }
 wheels = [
